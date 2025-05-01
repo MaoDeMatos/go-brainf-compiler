@@ -2,34 +2,35 @@
 
 # Variables
 BUILD_PATH = ./tmp
-BIN_NAME = main
+BIN_NAME = interpreter
+MAIN_PATH = ./src/cmd/interpreter
 
 .PHONY: install
 install: ## Install/upgrade dependencies
 	@echo ⬇️ Download project dependencies
 	go mod download
 	@echo ⬇️ Download air
-	go install github.com/air-verse/air@latest
+	go install github.com/cosmtrek/air@latest
 
 .PHONY: build
 build: ## Build for Production
-	go build -a -o ${BUILD_PATH}/${BIN_NAME}-prod -ldflags="-s -w" -gcflags=all="-l -B -C" ./src/cmd/interpreter
+	go build -a -o ${BUILD_PATH}/${BIN_NAME}-prod -ldflags="-s -w" -gcflags=all="-l -B -C" ${MAIN_PATH}
 
 .PHONY: build-dev
 build-dev: ## Build for Development
-	go build -o ${BUILD_PATH}/${BIN_NAME} ./src/cmd/interpreter
+	go build -o ${BUILD_PATH}/${BIN_NAME} ${MAIN_PATH}
 
 .PHONY: run
-run: ## Run the executable
-	${BUILD_PATH}/${BIN_NAME}
+run: ## Run app in dev mode
+	go run ${MAIN_PATH}
 
 .PHONY: dev
-dev: ## Run in Development mode
-	air --build.bin ${BUILD_PATH}/${BIN_NAME}
+dev: ## Run in watch mode
+	air -c .air.toml --build.bin ${BUILD_PATH}/${BIN_NAME}
 
 .PHONY: test
-test: ## Run test command
-	go test -v ./src/cmd/interpreter
+test: ## Run tests
+	go test -v ${MAIN_PATH}
 
 # .PHONY: clear
 # clear: ## Clear generated files
@@ -40,3 +41,4 @@ test: ## Run test command
 .DEFAULT_GOAL := help
 help: ## Displays this help menu
 	@grep -h -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "-> \033[36m%-20s\033[0m %s\n", $$1, $$2}'
+
